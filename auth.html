@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SereNova – Welcome</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body class="auth-body">
+
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <!-- LOG IN VIEW -->
+            <div id="login-view" class="auth-view active-view">
+                <div class="auth-header">
+                    <h2>Welcome back</h2>
+                    <p>A safe space to share what's on your mind.</p>
+                </div>
+
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-identifier">Username or Email</label>
+                        <input type="text" id="login-identifier" placeholder="Enter your username or email" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" placeholder="Enter your password" required />
+                    </div>
+                    <button type="submit" class="btn-primary form-submit">Log In</button>
+                </form>
+
+                <div class="auth-divider"><span>or continue with</span></div>
+
+                <div class="oauth-buttons">
+                    <button type="button" class="btn-oauth" id="btn-login-google">
+                        <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google Logo" class="oauth-icon"> Google
+                    </button>
+                    <button type="button" class="btn-oauth" id="btn-login-microsoft">
+                        <img src="https://www.svgrepo.com/show/475666/microsoft-color.svg" alt="Microsoft Logo" class="oauth-icon"> Microsoft
+                    </button>
+                </div>
+
+                <p class="auth-switch">
+                    Don't have an account? <a href="#" id="link-to-signup">Sign up</a>
+                </p>
+            </div>
+
+            <!-- SIGN UP VIEW -->
+            <div id="signup-view" class="auth-view">
+                <div class="auth-header">
+                    <h2>Create an account</h2>
+                    <p>Start your journey to a clearer mind.</p>
+                </div>
+
+                <form id="signup-form">
+                    <div class="form-group">
+                        <label for="signup-username">Username</label>
+                        <input type="text" id="signup-username" placeholder="Choose a username" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-email">Email Address</label>
+                        <input type="email" id="signup-email" placeholder="Enter your email" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password">Password</label>
+                        <input type="password" id="signup-password" placeholder="Create a password" required />
+                    </div>
+                    <button type="submit" class="btn-primary form-submit">Sign Up</button>
+                </form>
+
+                <div class="auth-divider"><span>or continue with</span></div>
+
+                <div class="oauth-buttons">
+                    <button type="button" class="btn-oauth" id="btn-signup-google">
+                        <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google Logo" class="oauth-icon"> Google
+                    </button>
+                    <button type="button" class="btn-oauth" id="btn-signup-microsoft">
+                        <img src="https://www.svgrepo.com/show/475666/microsoft-color.svg" alt="Microsoft Logo" class="oauth-icon"> Microsoft
+                    </button>
+                </div>
+
+                <p class="auth-switch">
+                    Already have an account? <a href="#" id="link-to-login">Log in</a>
+                </p>
+            </div>
+            
+            <div id="auth-error-message" class="auth-error hidden"></div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK Setup -->
+    <script type="module" src="auth.js"></script>
+</body>
+
+</html>
