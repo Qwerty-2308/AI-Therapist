@@ -1,0 +1,264 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Nunito:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Color Palette - Anxiety-Reducing, Soft & Calming */
+  --color-primary: #7FA99B;        /* Muted sage - calm */
+  --color-primary-dk: #6B8F85;     /* Deeper sage */
+  --color-primary-lt: #A8C4B8;     /* Light sage */
+  --color-secondary: #C4B8D4;      /* Soft lavender */
+  --color-accent: #E8DCC8;          /* Warm cream */
+  
+  /* Background - warm, not stark white */
+  --color-bg: #FAF9F6;             /* Off-white, no harshness */
+  --color-bg-alt: #F5F3EF;          /* Slightly darker cream */
+  --color-surface: #FFFFFF;         /* Pure white for cards */
+  
+  /* Text - softer, less harsh */
+  --color-text: #4A5568;            /* Soft dark gray, not harsh black */
+  --color-text-muted: #718096;      /* Muted gray */
+  --color-text-light: #A0AEC0;      /* Light gray */
+  
+  --color-border: #E8E5DE;         /* Warm border */
+  --color-border-light: #F0EDE7;    /* Lighter warm border */
+  
+  --color-error: #D69B9B;            /* Soft muted red */
+  --color-error-bg: #FDF2F2;        /* Very light red tint */
+  --color-success: #9BCBB3;          /* Soft green */
+  
+  /* Typography */
+  --font-heading: 'DM Serif Display', serif;
+  --font-body: 'Nunito', sans-serif;
+  
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+  
+  /* Border Radius - soft, organic */
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-2xl: 36px;
+  --radius-full: 9999px;
+  
+  /* Shadows - subtle, diffuse */
+  --shadow-sm: 0 2px 8px rgba(107, 143, 133, 0.04);
+  --shadow-md: 0 4px 16px rgba(107, 143, 133, 0.06);
+  --shadow-lg: 0 8px 32px rgba(107, 143, 133, 0.08);
+  --shadow-xl: 0 12px 48px rgba(107, 143, 133, 0.1);
+  
+  /* Transitions - slower, gentler */
+  --transition-fast: 0.2s ease;
+  --transition-base: 0.35s ease;
+  --transition-slow: 0.5s ease;
+  
+  /* Layout */
+  --max-width: 1100px;
+  --navbar-height: 72px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: color var(--transition-fast) ease;
+}
+
+button {
+  font-family: var(--font-body);
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+input, textarea {
+  font-family: var(--font-body);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Animations - Slow & Gentle */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes gentlePulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(127, 169, 155, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(127, 169, 155, 0);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+@keyframes softGlow {
+  0%, 100% { box-shadow: 0 4px 20px rgba(127, 169, 155, 0.2); }
+  50% { box-shadow: 0 4px 30px rgba(127, 169, 155, 0.35); }
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.8s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+.delay-1 { animation-delay: 0.15s; }
+.delay-2 { animation-delay: 0.3s; }
+.delay-3 { animation-delay: 0.45s; }
+.delay-4 { animation-delay: 0.6s; }
+.delay-5 { animation-delay: 0.75s; }
+
+/* ============================================
+   DARK MODE
+   ============================================ */
+[data-theme="dark"] {
+  --color-primary: #6B8F85;
+  --color-primary-dk: #5A7A70;
+  --color-primary-lt: #8FA99D;
+  --color-secondary: #9B8BAF;
+  --color-accent: #4A4550;
+  
+  --color-bg: #1A1D23;
+  --color-bg-alt: #252930;
+  --color-surface: #2D323B;
+  
+  --color-text: #E2E6EC;
+  --color-text-muted: #A0A8B0;
+  --color-text-light: #6B7580;
+  
+  --color-border: #3D4450;
+  --color-border-light: #353C47;
+  
+  --color-error: #C08080;
+  --color-error-bg: #2D2020;
+  --color-success: #7BAF98;
+  
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 12px 48px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="dark"] .navbar {
+  background: rgba(26, 29, 35, 0.92);
+}
+
+[data-theme="dark"] .navbar.scrolled {
+  background: rgba(26, 29, 35, 0.98);
+}
+
+[data-theme="dark"] .hero {
+  background: linear-gradient(180deg, var(--color-bg) 0%, var(--color-surface) 50%, var(--color-bg-alt) 100%);
+}
+
+[data-theme="dark"] .hero::before {
+  background: radial-gradient(circle, rgba(107, 143, 133, 0.1) 0%, transparent 70%);
+}
+
+[data-theme="dark"] .hero::after {
+  background: radial-gradient(circle, rgba(155, 139, 175, 0.08) 0%, transparent 70%);
+}
+
+[data-theme="dark"] .card,
+[data-theme="dark"] .step,
+[data-theme="dark"] .footer,
+[data-theme="dark"] .features,
+[data-theme="dark"] .how-it-works {
+  background: var(--color-surface);
+}
+
+[data-theme="dark"] .auth-card {
+  background: rgba(45, 50, 59, 0.92);
+}
+
+[data-theme="dark"] .form-group input {
+  background: var(--color-bg-alt);
+  color: var(--color-text);
+}
+
+[data-theme="dark"] .form-group input:focus {
+  background: var(--color-surface);
+}
+
+[data-theme="dark"] .chat-header,
+[data-theme="dark"] .chat-input-container {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+}
+
+[data-theme="dark"] .chat-input {
+  background: var(--color-bg-alt);
+  color: var(--color-text);
+}
+
+[data-theme="dark"] .message-ai .message-bubble {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+[data-theme="dark"] .btn-oauth {
+  background: var(--color-bg-alt);
+  color: var(--color-text);
+}
+
+[data-theme="dark"] .auth-body {
+  background: linear-gradient(180deg, var(--color-bg) 0%, var(--color-surface) 30%, var(--color-bg-alt) 100%);
+}

@@ -1,0 +1,28 @@
+target/
+!.mvn/wrapper/maven-wrapper.jar
+*.class
+
+# Mobile Tools for iOS (Xcode)
+.lsconnect
+*.ssjson
+*.lock
+
+# Package Objects
+*.jar
+*.war
+*.ear
+*.bundle
+*.tar.gz
+
+# IDE Support
+.classpath
+.project
+.settings/
+.idea/
+*.iml
+*.iws
+.vscode/
+
+# H2 Database
+*.mv.db
+*.trace.db
