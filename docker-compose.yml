@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      - SUPABASE_URL=https://inbkxxjsuafyjvngxpaf.supabase.co
+      - SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImluYmt4eGpzdWFmeWp2bmd4cGFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5OTMxNTgsImV4cCI6MjA5MDU2OTE1OH0.gXcnnkIMVfyS-KYnb2DOOXFPIWvKwRAXucOG6Gkr4z0
+      - SUPABASE_SERVICE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImluYmt4eGpzdWFmeWp2bmd4cGFmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDk5MzE1OCwiZXhwIjoyMDkwNTY5MTU4fQ.9jJ3a5Bux546DNqakkiiPxiMF9qhj7mlbQjCVJ3iuxA
+      - FIREBASE_API_KEY=AIzaSyAs9epDg6cgj9Yctk4VTPFMhc-GWYZqcEM
+      - FIREBASE_AUTH_DOMAIN=serenova-4ed34.firebaseapp.com
+      - FIREBASE_PROJECT_ID=serenova-4ed34
+      - FIREBASE_STORAGE_BUCKET=serenova-4ed34.firebasestorage.app
+      - FIREBASE_MESSAGING_SENDER_ID=365084180891
+      - FIREBASE_APP_ID=1:365084180891:web:880ca079ebf9ce08a3213e
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+    environment:
+      - VITE_API_BASE_URL=http://backend:8080
+      - VITE_FIREBASE_API_KEY=AIzaSyAs9epDg6cgj9Yctk4VTPFMhc-GWYZqcEM
+      - VITE_FIREBASE_AUTH_DOMAIN=serenova-4ed34.firebaseapp.com
+      - VITE_FIREBASE_PROJECT_ID=serenova-4ed34
+      - VITE_FIREBASE_STORAGE_BUCKET=serenova-4ed34.firebasestorage.app
+      - VITE_FIREBASE_MESSAGING_SENDER_ID=365084180891
+      - VITE_FIREBASE_APP_ID=1:365084180891:web:880ca079ebf9ce08a3213e
+      - VITE_FIREBASE_MEASUREMENT_ID=G-KKBTBBSM4B
+    depends_on:
+      - backend
+    restart: unless-stopped

@@ -1,86 +1,65 @@
 package com.serenova.controller;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseToken;
-import com.serenova.dto.LoginRequest;
-import com.serenova.dto.SignupRequest;
-import com.serenova.dto.VerifyRequest;
-import com.serenova.entity.User;
-import com.serenova.repository.UserRepository;
+import com.serenova.service.AuthService;
+import com.serenova.service.SupabaseService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "${app.frontend.origin}")
 public class AuthController {
 
-    private final UserRepository userRepository;
+    private final AuthService authService;
+    private final SupabaseService supabaseService;
 
-    public AuthController(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public AuthController(AuthService authService, SupabaseService supabaseService) {
+        this.authService = authService;
+        this.supabaseService = supabaseService;
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<?> verifyToken(@RequestBody VerifyRequest request) {
-        try {
-            FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(request.idToken());
-            String uid = decodedToken.getUid();
-            String email = decodedToken.getEmail();
-            String name = (String) decodedToken.getClaims().get("name");
-            if (name == null || name.isEmpty()) {
-                name = email.split("@")[0];
-            }
-
-            // Sync with local DB if needed
-            Optional<User> userOpt = userRepository.findByEmail(email);
-            User user;
-            if (userOpt.isEmpty()) {
-                user = new User(name, email, "FIREBASE_AUTH");
-                userRepository.save(user);
-            } else {
-                user = userOpt.get();
-            }
-
-            return ResponseEntity.ok(Map.of(
-                "message", "Verification successful",
-                "username", user.getUsername(),
-                "email", user.getEmail(),
-                "firebaseUid", uid
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.status(401).body(Map.of("error", "Invalid Firebase token: " + e.getMessage()));
+    public ResponseEntity<?> verifyToken(@RequestBody Map<String, String> request) {
+        String idToken = request.get("idToken");
+        
+        if (idToken == null || idToken.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "ID token required"));
         }
+
+        Map<String, Object> userInfo = authService.verifyFirebaseToken(idToken);
+        
+        if (userInfo == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "Invalid token"));
+        }
+
+        // Create user in Supabase if not exists
+        String email = (String) userInfo.get("email");
+        String displayName = (String) userInfo.get("displayName");
+        supabaseService.createUserIfNotExists(email, displayName);
+
+        return ResponseEntity.ok(Map.of(
+            "message", "Authentication successful",
+            "uid", userInfo.get("uid"),
+            "email", email,
+            "displayName", displayName
+        ));
     }
 
-    @PostMapping("/signup")
-    public ResponseEntity<?> signup(@RequestBody SignupRequest request) {
-        try {
-            User newUser = new User(request.username(), request.email(), request.password());
-            userRepository.save(newUser);
-            return ResponseEntity.ok(Map.of("message", "Signup successful", "username", newUser.getUsername()));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        var userOpt = request.identifier().contains("@") 
-            ? userRepository.findByEmail(request.identifier())
-            : userRepository.findByUsername(request.identifier());
-
-        if (userOpt.isPresent() && userOpt.get().getPassword().equals(request.password())) {
-            return ResponseEntity.ok(Map.of(
-                "message", "Login successful", 
-                "username", userOpt.get().getUsername(),
-                "userId", userOpt.get().getId()
-            ));
+    @PostMapping("/create-user")
+    public ResponseEntity<?> createUser(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String displayName = request.getOrDefault("displayName", email.split("@")[0]);
+        
+        if (email == null || email.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Email is required"));
         }
 
-        return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
+        supabaseService.createUserIfNotExists(email, displayName);
+        return ResponseEntity.ok(Map.of(
+            "message", "User created",
+            "email", email
+        ));
     }
 }

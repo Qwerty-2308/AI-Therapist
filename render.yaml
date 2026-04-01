@@ -1,0 +1,50 @@
+services:
+  - type: web
+    name: serenova-backend
+    env: java
+    buildCommand: mvn package -DskipTests
+    startCommand: java -jar target/serenova-backend-0.0.1-SNAPSHOT.jar
+    envVars:
+      - key: SUPABASE_URL
+        value: https://inbkxxjsuafyjvngxpaf.supabase.co
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: FIREBASE_API_KEY
+        sync: false
+      - key: FIREBASE_AUTH_DOMAIN
+        value: serenova-4ed34.firebaseapp.com
+      - key: FIREBASE_PROJECT_ID
+        value: serenova-4ed34
+      - key: FIREBASE_STORAGE_BUCKET
+        value: serenova-4ed34.firebasestorage.app
+      - key: FIREBASE_MESSAGING_SENDER_ID
+        value: 365084180891
+      - key: FIREBASE_APP_ID
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+
+  - type: web
+    name: serenova-frontend
+    buildCommand: npm install && npm run build
+    outputDir: dist
+    env: static
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://serenova-backend.onrender.com
+      - key: VITE_FIREBASE_API_KEY
+        sync: false
+      - key: VITE_FIREBASE_AUTH_DOMAIN
+        value: serenova-4ed34.firebaseapp.com
+      - key: VITE_FIREBASE_PROJECT_ID
+        value: serenova-4ed34
+      - key: VITE_FIREBASE_STORAGE_BUCKET
+        value: serenova-4ed34.firebasestorage.app
+      - key: VITE_FIREBASE_MESSAGING_SENDER_ID
+        value: 365084180891
+      - key: VITE_FIREBASE_APP_ID
+        sync: false
+      - key: VITE_FIREBASE_MEASUREMENT_ID
+        sync: false

@@ -1,60 +1,99 @@
 package com.serenova.service;
 
-import module java.base;
-import java.util.concurrent.*;
-import com.serenova.security.SecurityContext;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class ChatService {
 
-    // Structured Concurrency (JEP 505)
-    public String processChat(String message) throws ExecutionException, InterruptedException {
-        try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
-            // Fork AI API call
-            StructuredTaskScope.Subtask<String> aiResponse = scope.fork(() -> callAiApi(message));
-            
-            // Fork DB call (e.g., logging)
-            StructuredTaskScope.Subtask<Void> dbLog = scope.fork(() -> {
-                logToDatabase(message);
-                return null;
-            });
+    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+    private static final String GEMINI_API_KEY = System.getenv().getOrDefault("GEMINI_API_KEY", "");
+    
+    private final HttpClient httpClient;
+    private final ObjectMapper objectMapper;
 
-            scope.join();           // Wait for both
-            scope.throwIfFailed();  // Propagate errors
+    public ChatService() {
+        this.httpClient = HttpClient.newHttpClient();
+        this.objectMapper = new ObjectMapper();
+        System.out.println("ChatService initialized with Gemini API");
+    }
 
-            return aiResponse.get();
+    public String processChat(String message) {
+        return callGemini(message);
+    }
+
+    private String callGemini(String message) {
+        System.out.println("Calling Gemini API with message: " + message);
+
+        try {
+            var requestBody = Map.of(
+                    "contents", List.of(Map.of(
+                            "parts", List.of(Map.of("text", buildPrompt(message)))
+                    )),
+                    "generationConfig", Map.of(
+                            "temperature", 0.9,
+                            "maxOutputTokens", 500,
+                            "topP", 0.95,
+                            "topK", 40
+                    )
+            );
+
+            String jsonBody = objectMapper.writeValueAsString(requestBody);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(GEMINI_API_URL + "?key=" + GEMINI_API_KEY))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .timeout(java.time.Duration.ofSeconds(60))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                Map<String, Object> result = objectMapper.readValue(response.body(), Map.class);
+                return extractResponse(result);
+            } else {
+                System.err.println("Gemini API error: " + response.body());
+                return getFallbackResponse(message);
+            }
+        } catch (Exception e) {
+            System.err.println("Error calling Gemini: " + e.getMessage());
+            return getFallbackResponse(message);
         }
     }
 
-    private String callAiApi(String message) {
-        // Access Scoped Value (JEP 506)
-        var user = SecurityContext.CURRENT_USER.get();
-        System.out.println("AI request for user: " + user.username());
-        // Dummy response
-        return "I understand you're feeling " + message + ". Can you tell me more?";
-    }
-
-    private void logToDatabase(String message) {
-        // Dummy DB call
-        System.out.println("Logging chat history...");
-    }
-
-    // Primitive Types in Patterns (JEP 507)
-    public void handleMetadata(Object metadata) {
-        switch (metadata) {
-            case int statusCode when statusCode >= 400 -> 
-                System.out.println("Error status code: " + statusCode);
-            case int statusCode -> 
-                System.out.println("Success status code: " + statusCode);
-            case double sentimentScore when sentimentScore < 0.3 -> 
-                System.out.println("Low sentiment: " + sentimentScore);
-            case double sentimentScore -> 
-                System.out.println("Positive sentiment: " + sentimentScore);
-            case String msg -> 
-                System.out.println("Metadata message: " + msg);
-            default -> 
-                System.out.println("Unknown metadata type");
+    private String extractResponse(Map<String, Object> result) {
+        try {
+            var candidates = (List<Map<String, Object>>) result.get("candidates");
+            if (candidates != null && !candidates.isEmpty()) {
+                var content = (Map<String, Object>) candidates.get(0).get("content");
+                var parts = (List<Map<String, Object>>) content.get("parts");
+                if (parts != null && !parts.isEmpty()) {
+                    return parts.get(0).get("text").toString();
+                }
+            }
+            return getFallbackResponse("");
+        } catch (Exception e) {
+            System.err.println("Error extracting response: " + e.getMessage());
+            return getFallbackResponse("");
         }
+    }
+
+    private String buildPrompt(String message) {
+        return "You are SereNova, a compassionate AI therapist. " +
+               "Respond with empathy, warmth, and active listening. " +
+               "Keep responses brief (2-3 sentences). Never provide medical advice. " +
+               "User message: " + message;
+    }
+
+    private String getFallbackResponse(String message) {
+        return "I'm here for you. Would you like to tell me more about what you're feeling?";
     }
 }

@@ -1,11 +1,12 @@
 package com.serenova;
 
-import module java.base;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
 import com.serenova.service.ChatService;
-import com.serenova.security.SecurityContext;
+import com.serenova.dto.ChatRequest;
+import java.util.Map;
 
 @SpringBootApplication
 public class SereNovaApplication {
@@ -24,17 +25,8 @@ class ChatController {
     }
 
     @PostMapping
-    public String chat(@RequestBody String message) throws Exception {
-        // Mock user session using Scoped Values (JEP 506)
-        var user = new SecurityContext.UserSession(1L, "demo_user");
-        
-        return ScopedValue.where(SecurityContext.CURRENT_USER, user)
-                .call(() -> {
-                    // Primitive Patterns check (JEP 507)
-                    chatService.handleMetadata(200);
-                    chatService.handleMetadata(0.85);
-                    
-                    return chatService.processChat(message);
-                });
+    public ResponseEntity<Map<String, String>> chat(@RequestBody ChatRequest request) {
+        String response = chatService.processChat(request.getMessage());
+        return ResponseEntity.ok(Map.of("response", response));
     }
 }
