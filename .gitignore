@@ -1,3 +1,24 @@
 .env
 .DS_Store
 node_modules/
+
+# Logs
+*.log
+backend/backend.log
+backend/java_backend.log
+backend/python/avatar_service.log
+
+# Build artifacts
+backend/bin/
+backend/target/
+
+# IDE / tool config
+.opencode/
+
+# Large media assets (store externally)
+frontend/src/assets/*.jpg
+frontend/src/assets/*.jpeg
+frontend/src/assets/*.png
+frontend/public/*.jpg
+frontend/public/*.jpeg
+frontend/public/*.png

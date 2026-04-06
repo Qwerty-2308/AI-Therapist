@@ -978,3 +978,20 @@
     padding-right: 1.5rem;
   }
 }
+
+/* ============================================
+   AVATAR ANIMATIONS
+   ============================================ */
+@keyframes avatarGlow {
+  0%, 100% {
+    box-shadow: 0 0 30px rgba(102, 126, 234, 0.5), 0 0 60px rgba(102, 126, 234, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(102, 126, 234, 0.7), 0 0 80px rgba(102, 126, 234, 0.4);
+  }
+}
+
+@keyframes speaking {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.1); }
+}
