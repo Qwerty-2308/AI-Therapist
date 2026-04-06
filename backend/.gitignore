@@ -26,3 +26,6 @@ target/
 # H2 Database
 *.mv.db
 *.trace.db
+
+# Environment / secrets (contains API keys — never commit!)
+src/main/resources/application.properties
