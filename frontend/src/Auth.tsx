@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   signInWithPopup,
   updateProfile,
-  getIdToken
+  getIdToken,
 } from 'firebase/auth';
 import type { AuthError, User } from 'firebase/auth';
 import { auth, googleProvider, microsoftProvider } from './firebase';
@@ -16,40 +16,47 @@ interface AuthProps {
   onBackToHome: () => void;
 }
 
+/* ── Icons ──────────────────────────────────────────────── */
+const BackArrowIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="15 18 9 12 15 6" />
+  </svg>
+);
+
 export const Auth: React.FC<AuthProps> = ({ onAuthSuccess, onBackToHome }) => {
   const [isLoginView, setIsLoginView] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError]             = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Login states
-  const [loginIdentifier, setLoginIdentifier] = useState("");
-  const [loginPassword, setLoginPassword] = useState("");
+  // Login
+  const [loginIdentifier, setLoginIdentifier] = useState('');
+  const [loginPassword, setLoginPassword]     = useState('');
 
-  // Signup states
-  const [signupUsername, setSignupUsername] = useState("");
-  const [signupEmail, setSignupEmail] = useState("");
-  const [signupPassword, setSignupPassword] = useState("");
+  // Signup
+  const [signupUsername, setSignupUsername] = useState('');
+  const [signupEmail, setSignupEmail]       = useState('');
+  const [signupPassword, setSignupPassword] = useState('');
 
   const syncWithBackend = async (firebaseUser: User) => {
     const idToken = await getIdToken(firebaseUser);
-    
     try {
       const response = await fetch(`${API_BASE_URL}/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken })
+        body: JSON.stringify({ idToken }),
       });
-
       const data = await response.json();
-
       if (response.ok) {
         localStorage.setItem('user', JSON.stringify(data));
         onAuthSuccess(data);
       } else {
-        setError(data.error || "Backend sync failed");
+        setError(data.error || 'Backend sync failed');
       }
     } catch {
-      console.warn("Backend server is not responding, using frontend session only.");
-      const userData = { username: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User' };
+      console.warn('Backend not responding, using frontend session only.');
+      const userData = {
+        username: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
+      };
       localStorage.setItem('user', JSON.stringify(userData));
       onAuthSuccess(userData);
     }
@@ -57,61 +64,61 @@ export const Auth: React.FC<AuthProps> = ({ onAuthSuccess, onBackToHome }) => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-
+    setError('');
+    setIsSubmitting(true);
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, loginIdentifier, loginPassword);
-      await syncWithBackend(userCredential.user);
+      const cred = await signInWithEmailAndPassword(auth, loginIdentifier, loginPassword);
+      await syncWithBackend(cred.user);
     } catch (err) {
-      const authError = err as AuthError;
-      setError(authError.message);
+      setError((err as AuthError).message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-
+    setError('');
+    setIsSubmitting(true);
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, signupEmail, signupPassword);
-      await updateProfile(userCredential.user, { displayName: signupUsername });
-      await syncWithBackend(userCredential.user);
+      const cred = await createUserWithEmailAndPassword(auth, signupEmail, signupPassword);
+      await updateProfile(cred.user, { displayName: signupUsername });
+      await syncWithBackend(cred.user);
     } catch (err) {
-      const authError = err as AuthError;
-      setError(authError.message);
+      setError((err as AuthError).message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleOAuth = async (provider: typeof googleProvider) => {
-    setError("");
+    setError('');
+    setIsSubmitting(true);
     try {
       const result = await signInWithPopup(auth, provider);
       await syncWithBackend(result.user);
     } catch (err) {
-      const authError = err as AuthError;
-      setError(authError.message);
+      setError((err as AuthError).message);
+    } finally {
+      setIsSubmitting(false);
     }
+  };
+
+  const switchView = (login: boolean) => {
+    setIsLoginView(login);
+    setError('');
   };
 
   return (
     <div className="auth-body">
       <div className="auth-wrapper">
         <div className="auth-card">
-          <button 
-            onClick={onBackToHome}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--color-primary)',
-              cursor: 'pointer',
-              marginBottom: '1rem',
-              fontSize: '0.9rem',
-              fontWeight: 600
-            }}
-          >
-            ← Back to Home
+          {/* Back button */}
+          <button className="auth-back-btn" onClick={onBackToHome}>
+            <BackArrowIcon /> Back to Home
           </button>
 
+          {/* Login View */}
           {isLoginView ? (
             <div id="login-view" className="auth-view active-view">
               <div className="auth-header">
@@ -122,45 +129,77 @@ export const Auth: React.FC<AuthProps> = ({ onAuthSuccess, onBackToHome }) => {
               <form id="login-form" onSubmit={handleLogin}>
                 <div className="form-group">
                   <label htmlFor="login-identifier">Email Address</label>
-                  <input 
-                    type="email" 
-                    id="login-identifier" 
-                    placeholder="Enter your email" 
-                    required 
+                  <input
+                    type="email"
+                    id="login-identifier"
+                    placeholder="Enter your email"
+                    required
                     value={loginIdentifier}
-                    onChange={(e) => setLoginIdentifier(e.target.value)}
+                    onChange={e => setLoginIdentifier(e.target.value)}
+                    aria-required="true"
                   />
                 </div>
                 <div className="form-group">
                   <label htmlFor="login-password">Password</label>
-                  <input 
-                    type="password" 
-                    id="login-password" 
-                    placeholder="Enter your password" 
-                    required 
+                  <input
+                    type="password"
+                    id="login-password"
+                    placeholder="Enter your password"
+                    required
                     value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
+                    onChange={e => setLoginPassword(e.target.value)}
+                    aria-required="true"
                   />
                 </div>
-                <button type="submit" className="btn-primary form-submit">Log In</button>
+                <button
+                  type="submit"
+                  className="btn-primary form-submit"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Signing in…' : 'Log In'}
+                </button>
               </form>
 
               <div className="auth-divider"><span>or continue with</span></div>
 
               <div className="oauth-buttons">
-                <button type="button" className="btn-oauth" onClick={() => handleOAuth(googleProvider)}>
-                  <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google Logo" className="oauth-icon" /> Google
+                <button
+                  type="button"
+                  className="btn-oauth"
+                  onClick={() => handleOAuth(googleProvider)}
+                  disabled={isSubmitting}
+                >
+                  <img
+                    src="https://www.svgrepo.com/show/475656/google-color.svg"
+                    alt="Google"
+                    className="oauth-icon"
+                  />
+                  Google
                 </button>
-                <button type="button" className="btn-oauth" onClick={() => handleOAuth(microsoftProvider)}>
-                  <img src="https://www.svgrepo.com/show/475666/microsoft-color.svg" alt="Microsoft Logo" className="oauth-icon" /> Microsoft
+                <button
+                  type="button"
+                  className="btn-oauth"
+                  onClick={() => handleOAuth(microsoftProvider)}
+                  disabled={isSubmitting}
+                >
+                  <img
+                    src="https://www.svgrepo.com/show/475666/microsoft-color.svg"
+                    alt="Microsoft"
+                    className="oauth-icon"
+                  />
+                  Microsoft
                 </button>
               </div>
 
               <p className="auth-switch">
-                Don't have an account? <a href="#" onClick={(e) => { e.preventDefault(); setIsLoginView(false); setError(""); }}>Sign up</a>
+                Don't have an account?{' '}
+                <a href="#" onClick={e => { e.preventDefault(); switchView(false); }}>
+                  Sign up
+                </a>
               </p>
             </div>
           ) : (
+            /* Signup View */
             <div id="signup-view" className="auth-view active-view">
               <div className="auth-header">
                 <h2>Create an account</h2>
@@ -170,58 +209,92 @@ export const Auth: React.FC<AuthProps> = ({ onAuthSuccess, onBackToHome }) => {
               <form id="signup-form" onSubmit={handleSignup}>
                 <div className="form-group">
                   <label htmlFor="signup-username">Username</label>
-                  <input 
-                    type="text" 
-                    id="signup-username" 
-                    placeholder="Choose a username" 
-                    required 
+                  <input
+                    type="text"
+                    id="signup-username"
+                    placeholder="Choose a username"
+                    required
                     value={signupUsername}
-                    onChange={(e) => setSignupUsername(e.target.value)}
+                    onChange={e => setSignupUsername(e.target.value)}
+                    aria-required="true"
                   />
                 </div>
                 <div className="form-group">
                   <label htmlFor="signup-email">Email Address</label>
-                  <input 
-                    type="email" 
-                    id="signup-email" 
-                    placeholder="Enter your email" 
-                    required 
+                  <input
+                    type="email"
+                    id="signup-email"
+                    placeholder="Enter your email"
+                    required
                     value={signupEmail}
-                    onChange={(e) => setSignupEmail(e.target.value)}
+                    onChange={e => setSignupEmail(e.target.value)}
+                    aria-required="true"
                   />
                 </div>
                 <div className="form-group">
                   <label htmlFor="signup-password">Password</label>
-                  <input 
-                    type="password" 
-                    id="signup-password" 
-                    placeholder="Create a password" 
-                    required 
+                  <input
+                    type="password"
+                    id="signup-password"
+                    placeholder="Create a password (min. 6 chars)"
+                    required
+                    minLength={6}
                     value={signupPassword}
-                    onChange={(e) => setSignupPassword(e.target.value)}
+                    onChange={e => setSignupPassword(e.target.value)}
+                    aria-required="true"
                   />
                 </div>
-                <button type="submit" className="btn-primary form-submit">Sign Up</button>
+                <button
+                  type="submit"
+                  className="btn-primary form-submit"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Creating account…' : 'Sign Up'}
+                </button>
               </form>
 
               <div className="auth-divider"><span>or continue with</span></div>
 
               <div className="oauth-buttons">
-                <button type="button" className="btn-oauth" onClick={() => handleOAuth(googleProvider)}>
-                  <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google Logo" className="oauth-icon" /> Google
+                <button
+                  type="button"
+                  className="btn-oauth"
+                  onClick={() => handleOAuth(googleProvider)}
+                  disabled={isSubmitting}
+                >
+                  <img
+                    src="https://www.svgrepo.com/show/475656/google-color.svg"
+                    alt="Google"
+                    className="oauth-icon"
+                  />
+                  Google
                 </button>
-                <button type="button" className="btn-oauth" onClick={() => handleOAuth(microsoftProvider)}>
-                  <img src="https://www.svgrepo.com/show/475666/microsoft-color.svg" alt="Microsoft Logo" className="oauth-icon" /> Microsoft
+                <button
+                  type="button"
+                  className="btn-oauth"
+                  onClick={() => handleOAuth(microsoftProvider)}
+                  disabled={isSubmitting}
+                >
+                  <img
+                    src="https://www.svgrepo.com/show/475666/microsoft-color.svg"
+                    alt="Microsoft"
+                    className="oauth-icon"
+                  />
+                  Microsoft
                 </button>
               </div>
 
               <p className="auth-switch">
-                Already have an account? <a href="#" onClick={(e) => { e.preventDefault(); setIsLoginView(true); setError(""); }}>Log in</a>
+                Already have an account?{' '}
+                <a href="#" onClick={e => { e.preventDefault(); switchView(true); }}>
+                  Log in
+                </a>
               </p>
             </div>
           )}
 
-          {error && <div className="auth-error">{error}</div>}
+          {/* Error message */}
+          {error && <div className="auth-error" role="alert">{error}</div>}
         </div>
       </div>
     </div>
