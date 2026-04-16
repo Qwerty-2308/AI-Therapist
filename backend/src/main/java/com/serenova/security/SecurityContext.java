@@ -1,9 +1,18 @@
 package com.serenova.security;
 
-import module java.base;
-
 public class SecurityContext {
-    public static final ScopedValue<UserSession> CURRENT_USER = ScopedValue.newInstance();
-    
-    public record UserSession(Long userId, String username) {}
+    public static final ThreadLocal<UserSession> CURRENT_USER = new ThreadLocal<>();
+
+    public static class UserSession {
+        private final Long userId;
+        private final String username;
+
+        public UserSession(Long userId, String username) {
+            this.userId = userId;
+            this.username = username;
+        }
+
+        public Long getUserId() { return userId; }
+        public String getUsername() { return username; }
+    }
 }

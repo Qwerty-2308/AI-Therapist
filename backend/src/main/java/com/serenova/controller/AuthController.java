@@ -31,56 +31,77 @@ public class AuthController {
             String uid = decodedToken.getUid();
             String email = decodedToken.getEmail();
             String name = (String) decodedToken.getClaims().get("name");
+
             if (name == null || name.isEmpty()) {
                 name = email.split("@")[0];
             }
 
-            // Sync with local DB if needed
             Optional<User> userOpt = userRepository.findByEmail(email);
             User user;
+
             if (userOpt.isEmpty()) {
-                user = new User(name, email, "FIREBASE_AUTH");
+                user = new User(name, email, null, uid);
                 userRepository.save(user);
             } else {
                 user = userOpt.get();
+
+                // Ensure firebaseUid gets updated if missing
+                if (user.getFirebaseUid() == null) {
+                    user.setFirebaseUid(uid);
+                    userRepository.save(user);
+                }
             }
 
             return ResponseEntity.ok(Map.of(
-                "message", "Verification successful",
-                "username", user.getUsername(),
-                "email", user.getEmail(),
-                "firebaseUid", uid
-            ));
+                    "message", "Verification successful",
+                    "username", user.getUsername(),
+                    "email", user.getEmail(),
+                    "firebaseUid", uid));
+
         } catch (Exception e) {
-            return ResponseEntity.status(401).body(Map.of("error", "Invalid Firebase token: " + e.getMessage()));
+            return ResponseEntity.status(401)
+                    .body(Map.of("error", "Invalid Firebase token: " + e.getMessage()));
         }
     }
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody SignupRequest request) {
         try {
-            User newUser = new User(request.username(), request.email(), request.password());
+            User newUser = new User(
+                    request.username(),
+                    request.email(),
+                    request.password(),
+                    null);
+
             userRepository.save(newUser);
-            return ResponseEntity.ok(Map.of("message", "Signup successful", "username", newUser.getUsername()));
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Signup successful",
+                    "username", newUser.getUsername()));
+
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", e.getMessage()));
         }
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        var userOpt = request.identifier().contains("@") 
-            ? userRepository.findByEmail(request.identifier())
-            : userRepository.findByUsername(request.identifier());
+        var userOpt = request.identifier().contains("@")
+                ? userRepository.findByEmail(request.identifier())
+                : userRepository.findByUsername(request.identifier());
 
-        if (userOpt.isPresent() && userOpt.get().getPassword().equals(request.password())) {
+        if (userOpt.isPresent()
+                && userOpt.get().getPassword() != null
+                && userOpt.get().getPassword().equals(request.password())) {
+
             return ResponseEntity.ok(Map.of(
-                "message", "Login successful", 
-                "username", userOpt.get().getUsername(),
-                "userId", userOpt.get().getId()
-            ));
+                    "message", "Login successful",
+                    "username", userOpt.get().getUsername(),
+                    "userId", userOpt.get().getId()));
         }
 
-        return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
+        return ResponseEntity.status(401)
+                .body(Map.of("error", "Invalid credentials"));
     }
 }
